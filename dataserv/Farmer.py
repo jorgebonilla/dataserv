@@ -28,7 +28,9 @@ class Farmer(db.Model):
     btc_addr = db.Column(db.String(35), unique=True)
     payout_addr = db.Column(db.String(35))
     last_seen = db.Column(DateTime, default=datetime.utcnow)
+    reg_time = db.Column(DateTime, default=datetime.utcnow)
     height = db.Column(db.Integer, default=0)
+    heartbeats = db.Column(db.Integer, default=0)
 
     def __init__(self, btc_addr, last_seen=None):
         """
@@ -115,6 +117,7 @@ class Farmer(db.Model):
 
         if time_limit:
             farmer.last_seen = datetime.utcnow()
+            farmer.heartbeats += 1
             db.session.commit()
         # else just ignore
 
@@ -144,3 +147,8 @@ class Farmer(db.Model):
             "height": self.height
         }
         return json.dumps(payload)
+
+    def expected_heartbeats(self):
+        """Number of heartbeats we expect since registration."""
+        sec_since_reg = (datetime.utcnow() - self.reg_time).seconds
+        return int(sec_since_reg/app.config["MAX_PING"])

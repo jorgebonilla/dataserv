@@ -77,6 +77,15 @@ class FarmerTest(unittest.TestCase):
         delta_seconds = int((farmer.last_seen - datetime.utcnow()).seconds)
         self.assertNotEqual(delta_seconds, 0)
 
+    def test_expected_uptime(self):
+        farmer = Farmer(addresses["beta"])
+        farmer.register()
+
+        app.config["MAX_PING"] = 1
+        self.assertEqual(farmer.expected_heartbeats(), 0)
+        time.sleep(1)
+        self.assertEqual(farmer.expected_heartbeats(), app.config["MAX_PING"])
+
     def test_height(self):
         farmer = Farmer(addresses["gamma"])
         farmer.register()
